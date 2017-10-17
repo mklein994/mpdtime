@@ -13,7 +13,11 @@ fn main() {
 
     let status = conn.status().unwrap();
 
-    let (elapsed, total) = status.time.unwrap();
+    let (elapsed, total) = match status.time {
+        Some(t) => t,
+        None => std::process::exit(0),
+    };
+
     print!(
         "{}:{:02}/{}:{:02} ({}%)",
         elapsed.num_minutes(),
