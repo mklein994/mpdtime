@@ -1,3 +1,25 @@
+extern crate mpd;
+
+use mpd::Client;
+
 fn main() {
-    println!("Hello, world!");
+    let mut conn = match Client::connect("127.0.0.1:6600") {
+        Ok(c) => c,
+        Err(_) => {
+            eprintln!("Could not connect to mpd");
+            std::process::exit(1);
+        }
+    };
+
+    let status = conn.status().unwrap();
+
+    let (elapsed, total) = status.time.unwrap();
+    print!(
+        "{}:{:02}/{}:{:02} ({}%)",
+        elapsed.num_minutes(),
+        elapsed.num_seconds() - (elapsed.num_minutes() * 60),
+        total.num_minutes(),
+        total.num_seconds() - (total.num_minutes() * 60),
+        (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc()
+    );
 }
