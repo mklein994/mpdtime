@@ -1,6 +1,6 @@
 extern crate mpd;
 
-use mpd::Client;
+use mpd::{Client, State};
 use std::fmt;
 use std::error;
 use std::env;
@@ -23,6 +23,15 @@ impl Config {
         }
     }
 }
+
+/// \u{e034} ⏸
+pub const PAUSE_ICON: &'static str = "<span font_desc='Material Icons'>\u{e034}</span>";
+
+/// \u{e037} ⏵
+pub const PLAY_ICON: &'static str = "<span font_desc='Material Icons'>\u{e037}</span>";
+
+/// \u{e047} ⏹
+pub const STOP_ICON: &'static str = "<span font_desc='Material Icons'>\u{e047}</span>";
 
 #[derive(Debug)]
 pub enum Error {
@@ -72,7 +81,12 @@ pub fn run(config: &Config) -> Result<()> {
             );
         } else {
             print!(
-                "{}:{:02}/{}:{:02} ({}%)",
+                "{} {}:{:02}/{}:{:02} ({}%)",
+                match status.state {
+                    State::Play => PLAY_ICON,
+                    State::Pause => PAUSE_ICON,
+                    State::Stop => STOP_ICON,
+                },
                 elapsed.num_minutes(),
                 elapsed.num_seconds() - (elapsed.num_minutes() * 60),
                 total.num_minutes(),
