@@ -25,13 +25,19 @@ impl Config {
 }
 
 /// \u{e034} ⏸
-pub const PAUSE_ICON: &'static str = "<span font_desc='Material Icons'>\u{e034}</span>";
+pub const PAUSE_ICON: &str = "<span font_desc='Material Icons'>\u{e034}</span>";
 
 /// \u{e037} ⏵
-pub const PLAY_ICON: &'static str = "<span font_desc='Material Icons'>\u{e037}</span>";
+pub const PLAY_ICON: &str = "<span font_desc='Material Icons'>\u{e037}</span>";
 
 /// \u{e047} ⏹
-pub const STOP_ICON: &'static str = "<span font_desc='Material Icons'>\u{e047}</span>";
+pub const STOP_ICON: &str = "<span font_desc='Material Icons'>\u{e047}</span>";
+
+pub const SHUFFLE_ICON: &str = "<span font_desc='Material Icons'>\u{e043}</span>";
+
+pub const REPEAT_ICON: &str = "<span font_desc='Material Icons'>\u{e040}</span>";
+
+pub const REPEAT_ONE_ICON: &str = "<span font_desc='Material Icons'>\u{e041}</span>";
 
 #[derive(Debug)]
 pub enum Error {
@@ -81,17 +87,27 @@ pub fn run(config: &Config) -> Result<()> {
             );
         } else {
             print!(
-                "{} {}:{:02}/{}:{:02} ({}%)",
+                "{}{}{} {}:{:02}/{}:{:02} ({}%)",
                 match status.state {
                     State::Play => PLAY_ICON,
                     State::Pause => PAUSE_ICON,
                     State::Stop => STOP_ICON,
                 },
+                if status.repeat {
+                    if status.single {
+                        REPEAT_ONE_ICON
+                    } else {
+                        REPEAT_ICON
+                    }
+                } else {
+                    ""
+                },
+                if status.random { SHUFFLE_ICON } else { "" },
                 elapsed.num_minutes(),
                 elapsed.num_seconds() - (elapsed.num_minutes() * 60),
                 total.num_minutes(),
                 total.num_seconds() - (total.num_minutes() * 60),
-                (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc()
+                (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc(),
             );
         }
     }
