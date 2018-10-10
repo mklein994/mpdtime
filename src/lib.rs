@@ -1,9 +1,9 @@
 extern crate mpd;
 
 use mpd::{Client, State};
-use std::fmt;
-use std::error;
 use std::env;
+use std::error;
+use std::fmt;
 
 #[derive(Debug, Default)]
 pub struct Config {
@@ -17,7 +17,8 @@ impl Config {
         args.next();
 
         Self {
-            percent: args.next()
+            percent: args
+                .next()
                 .and_then(|a| if a == "-p" { Some(a) } else { None })
                 .is_some(),
         }
