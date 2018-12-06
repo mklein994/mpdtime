@@ -85,29 +85,42 @@ pub fn run(config: &Config) -> Result<()> {
                 elapsed.num_seconds() as f64 / total.num_seconds() as f64
             );
         } else {
+            let state = match status.state {
+                State::Play => PLAY_ICON,
+                State::Pause => PAUSE_ICON,
+                State::Stop => STOP_ICON,
+            };
+
+            let repeat = if status.repeat {
+                if status.single {
+                    REPEAT_ONE_ICON
+                } else {
+                    REPEAT_ICON
+                }
+            } else {
+                ""
+            };
+
+            let shuffle = if status.random { SHUFFLE_ICON } else { "" };
+
+            let percent =
+                (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc();
+
+            let min = elapsed.num_minutes();
+            let sec = elapsed.num_seconds() - (elapsed.num_minutes() * 60);
+            let min_total = total.num_minutes();
+            let sec_total = total.num_seconds() - (total.num_minutes() * 60);
+
             print!(
                 "{state}{repeat}{shuffle} {min}:{sec:02}/{min_total}:{sec_total:02} ({percent}%)",
-                state = match status.state {
-                    State::Play => PLAY_ICON,
-                    State::Pause => PAUSE_ICON,
-                    State::Stop => STOP_ICON,
-                },
-                repeat = if status.repeat {
-                    if status.single {
-                        REPEAT_ONE_ICON
-                    } else {
-                        REPEAT_ICON
-                    }
-                } else {
-                    ""
-                },
-                shuffle = if status.random { SHUFFLE_ICON } else { "" },
-                min = elapsed.num_minutes(),
-                sec = elapsed.num_seconds() - (elapsed.num_minutes() * 60),
-                min_total = total.num_minutes(),
-                sec_total = total.num_seconds() - (total.num_minutes() * 60),
-                percent =
-                    (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc(),
+                state = state,
+                repeat = repeat,
+                shuffle = shuffle,
+                min = min,
+                sec = sec,
+                min_total = min_total,
+                sec_total = sec_total,
+                percent = percent,
             );
         }
     }
