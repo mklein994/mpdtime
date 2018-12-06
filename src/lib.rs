@@ -1,5 +1,3 @@
-extern crate mpd;
-
 use mpd::{Client, State};
 use std::env;
 use std::error;
