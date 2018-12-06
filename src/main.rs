@@ -1,5 +1,3 @@
-extern crate mpdtime;
-
 use mpdtime::Config;
 
 fn main() {
