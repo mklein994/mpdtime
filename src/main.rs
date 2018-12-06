@@ -3,9 +3,9 @@ extern crate mpdtime;
 use mpdtime::Config;
 
 fn main() {
-    let config = Config::new();
+    let args = std::env::args();
 
-    if let Err(e) = mpdtime::run(&config) {
+    if let Err(e) = Config::from_args(args).and_then(|config| mpdtime::run(&config)) {
         eprintln!("{}", e);
         std::process::exit(1);
     }

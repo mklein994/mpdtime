@@ -2,24 +2,51 @@ use mpd::{Client, State};
 use std::env;
 use std::error;
 use std::fmt;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Config {
     percent: bool,
+    socket: SocketAddr,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            percent: false,
+            socket: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6600),
+        }
+    }
 }
 
 impl Config {
-    pub fn new() -> Self {
-        let mut args = env::args();
-
+    pub fn from_args(mut args: env::Args) -> Result<Self> {
         args.next();
 
-        Self {
-            percent: args
-                .next()
-                .and_then(|a| if a == "-p" { Some(a) } else { None })
-                .is_some(),
+        let mut config = Config::default();
+
+        while let Some(arg) = args.next() {
+            match arg.as_str() {
+                "-p" | "--percent" => config.percent = true,
+                "-c" | "--connection" => {
+                    config.socket = args
+                        .next()
+                        .ok_or(Error::Arg("Connection flag needs an argument"))?
+                        .parse()?
+                }
+                _ => {}
+            }
         }
+
+        if let Ok(host) = env::var("MPD_HOST") {
+            config.socket.set_ip(host.parse()?);
+        }
+
+        if let Ok(port) = env::var("MPD_PORT") {
+            config.socket.set_port(port.parse()?);
+        }
+
+        Ok(config)
     }
 }
 
@@ -40,13 +67,19 @@ pub const REPEAT_ONE_ICON: &str = "<span font_desc='Material Icons'>\u{e041}</sp
 
 #[derive(Debug)]
 pub enum Error {
+    Arg(&'static str),
     Mpd(mpd::error::Error),
+    Net(std::net::AddrParseError),
+    ParseInt(std::num::ParseIntError),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Error::Arg(err) => err.fmt(f),
             Error::Mpd(ref err) => err.fmt(f),
+            Error::Net(ref err) => err.fmt(f),
+            Error::ParseInt(ref err) => err.fmt(f),
         }
     }
 }
@@ -54,13 +87,19 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::Arg(err) => err,
             Error::Mpd(ref err) => err.description(),
+            Error::Net(ref err) => err.description(),
+            Error::ParseInt(ref err) => err.description(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
+            Error::Arg(_) => None,
             Error::Mpd(ref err) => Some(err),
+            Error::Net(ref err) => Some(err),
+            Error::ParseInt(ref err) => Some(err),
         }
     }
 }
@@ -71,10 +110,22 @@ impl From<mpd::error::Error> for Error {
     }
 }
 
+impl From<std::net::AddrParseError> for Error {
+    fn from(err: std::net::AddrParseError) -> Self {
+        Error::Net(err)
+    }
+}
+
+impl From<std::num::ParseIntError> for Error {
+    fn from(err: std::num::ParseIntError) -> Self {
+        Error::ParseInt(err)
+    }
+}
+
 type Result<T> = std::result::Result<T, Error>;
 
 pub fn run(config: &Config) -> Result<()> {
-    let mut conn = Client::connect("127.0.0.1:6600")?;
+    let mut conn = Client::connect(config.socket)?;
 
     let status = conn.status()?;
 
