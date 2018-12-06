@@ -86,13 +86,13 @@ pub fn run(config: &Config) -> Result<()> {
             );
         } else {
             print!(
-                "{}{}{} {}:{:02}/{}:{:02} ({}%)",
-                match status.state {
+                "{state}{repeat}{shuffle} {min}:{sec:02}/{min_total}:{sec_total:02} ({percent}%)",
+                state = match status.state {
                     State::Play => PLAY_ICON,
                     State::Pause => PAUSE_ICON,
                     State::Stop => STOP_ICON,
                 },
-                if status.repeat {
+                repeat = if status.repeat {
                     if status.single {
                         REPEAT_ONE_ICON
                     } else {
@@ -101,12 +101,13 @@ pub fn run(config: &Config) -> Result<()> {
                 } else {
                     ""
                 },
-                if status.random { SHUFFLE_ICON } else { "" },
-                elapsed.num_minutes(),
-                elapsed.num_seconds() - (elapsed.num_minutes() * 60),
-                total.num_minutes(),
-                total.num_seconds() - (total.num_minutes() * 60),
-                (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc(),
+                shuffle = if status.random { SHUFFLE_ICON } else { "" },
+                min = elapsed.num_minutes(),
+                sec = elapsed.num_seconds() - (elapsed.num_minutes() * 60),
+                min_total = total.num_minutes(),
+                sec_total = total.num_seconds() - (total.num_minutes() * 60),
+                percent =
+                    (elapsed.num_seconds() as f64 / total.num_seconds() as f64 * 100.0).trunc(),
             );
         }
     }
