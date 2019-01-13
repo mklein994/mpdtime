@@ -1,6 +1,5 @@
 use mpd::{Client, State};
 use std::env;
-use std::error;
 use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -84,25 +83,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Arg(err) => err,
-            Error::Mpd(ref err) => err.description(),
-            Error::Net(ref err) => err.description(),
-            Error::ParseInt(ref err) => err.description(),
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        match *self {
-            Error::Arg(_) => None,
-            Error::Mpd(ref err) => Some(err),
-            Error::Net(ref err) => Some(err),
-            Error::ParseInt(ref err) => Some(err),
-        }
-    }
-}
+impl std::error::Error for Error {}
 
 impl From<mpd::error::Error> for Error {
     fn from(err: mpd::error::Error) -> Self {
