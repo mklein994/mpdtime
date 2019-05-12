@@ -26,6 +26,11 @@ impl Config {
 
         while let Some(arg) = args.next() {
             match arg.as_str() {
+                "-h" | "--help" => eprintln!(
+                    "Usage: {} [-p | --percent] \
+                     [-c CONNECTION | --connection CONNECTION]",
+                    env!("CARGO_PKG_NAME")
+                ),
                 "-p" | "--percent" => config.percent = true,
                 "-c" | "--connection" => {
                     config.socket = args
